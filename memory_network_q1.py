@@ -105,6 +105,9 @@ def vectorize_query(data, word_idx, query_maxlen):
 
 
 
+
+
+
 try:
     path = get_file('babi-tasks-v1-2.tar.gz', origin='https://s3.amazonaws.com/text-datasets/babi_tasks_1-20_v1-2.tar.gz')
 except:
@@ -255,43 +258,41 @@ except Exception:
 # write story answer question in the format in a text file
 
 model.load_weights(model_path1)
-pred_results = model.predict(([inputs_test, queries_test]))
 
 
 # Display a selected test story
+def run_demo(test_stories, model):
+    n = 10
+    story_list = test_stories[n][0]
+    story = ' '.join(word for word in story_list)
+    print("\n Story is:", story)
+    qu = "Where is John ?"
+    print(qu)
+    q = vectorize_query(qu, word_idx, query_maxlen)
+    ans = test_stories[n][2]
+    print("Actual answer is: ", ans)
+    input_story = np.reshape(inputs_test[n], (1, story_maxlen))
 
+    final_answer, confidence = get_answer(input_story,q, model)
+
+    print("Machine answer is: ", final_answer)
+    print("Confidence: ",confidence)
+
+
+def get_answer(input_story, q, model):
+    pred_results3 = model.predict(([input_story, q]))
+    val_max2 = np.argmax(pred_results3[0])
+    k = "answer not found"
+    # Generate prediction from model
+    for key, val in word_idx.items():
+        if val == val_max2:
+            k = key
+
+    return k,pred_results3[0][val_max2]
 #n = np.random.randint(0,1000)
-n = 10
-story_list = test_stories[n][0]
-story =' '.join(word for word in story_list)
-print("\n Story is:",story)
-
-# question_list = test_stories[n][1]
-# ques =' '.join(word for word in question_list)
-# print("Question is: ",ques)
+run_demo(test_stories, model)
 
 
-qu = "Where is Mary ?"
-print (qu)
-q = vectorize_query(qu,word_idx,query_maxlen)
-
-ans = test_stories[n][2]
-print("Actual answer is: ", ans)
-
-
-input_story = np.reshape(inputs_test[n],(1,story_maxlen))
-pred_results3 = model.predict(([input_story, q]))
-
-val_max2 = np.argmax(pred_results3[0])
-
-#Generate prediction from model
-
-for key, val in word_idx.items():
-    if val == val_max2:
-        k = key
-
-print("Machine answer is: ", k)
-print("I am ", pred_results3[0][val_max2], "certain of it")
 
 ## Read my own file
 
