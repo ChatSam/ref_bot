@@ -68,6 +68,7 @@ def parse_stories(lines, only_supporting=False):
         else:
             sent = tokenize(line)
             story.append(sent)
+
     return data
 
 
@@ -89,6 +90,7 @@ def vectorize_stories(data, word_idx, story_maxlen, query_maxlen):
     Xq = []
     Y = []
     for story, query, answer in data:
+
         x = [word_idx[w] for w in story]
         xq = [word_idx[w] for w in query]
         # let's not forget that index 0 is reserved
@@ -109,7 +111,22 @@ def vectorize_query(data, word_idx, query_maxlen):
 
     return pad_sequences(Xq, maxlen=query_maxlen)
 
-
+def vectorize_story(data, word_idx, story_maxlen):
+    X = []
+    #Xq = []
+    #Y = []
+    print (data)
+    for storyy in data:
+        tokens = tokenize(storyy)
+        x = [word_idx[w] for w in tokens]
+        #xq = [word_idx[w] for w in query]
+        # let's not forget that index 0 is reserved
+        #y = np.zeros(len(word_idx) + 1)
+        #y[word_idx[answer]] = 1
+        X.append(x)
+        #Xq.append(xq)
+        #Y.append(y)
+    return pad_sequences(X, maxlen=story_maxlen)
 
 
 
@@ -277,7 +294,7 @@ def run_demo(test_stories, model):
     story_list = test_stories[n][0]
     story = ' '.join(word for word in story_list)
 
-    print("\n\n \t\t ------------- Story ------------ \t\t \n {0}"
+    print("\n\n \t\t ------------- Text ------------ \t\t \n {0}"
              "\n\t\t----------------------------------".format(story))
 
     while True:
@@ -311,9 +328,47 @@ def get_answer(input_story, q, model):
             k = key
 
     return k,pred_results3[0][val_max2]
+
+
+def load_story(file_path=None, text=None):
+
+    # text = "John and Sandra went to the bedroom.\n" \
+    #        "Sandra and John moved to the garden.\n" \
+    #        "John and Daniel moved to the kitchen.\n" \
+    #        "Mary and Sandra journeyed to the office.\n" \
+    #        "Sandra and John travelled to the bedroom.\n" \
+    #        "Mary and John moved to the kitchen.\n" \
+    #        "John and Sandra went back to the bathroom.\n" \
+    #        "Daniel and Mary moved to the garden.\n"
+
+    data = None
+
+    file_path = 'text1.txt'
+    if text:
+        data = parse_stories(text.splitlines)
+
+    elif file_path:
+        f = open(file_path)
+        lines = f.readlines()
+
+        #data = parse_stories(lines, only_supporting=False)
+        data = vectorize_story(lines,word_idx,story_maxlen)
+        print (data)
+
+    else:
+        print ("Error: No data loaded. Refbot Exited")
+        return
+
+
+    print("\n\n \t\t ------------- Text ------------ \t\t \n {0}"
+             "\n\t\t----------------------------------".format(data))
+
+    stories = get_stories(text, only_supporting=False,max_length=None)
+    print (stories)
+
 #n = np.random.randint(0,1000)
 run_demo(test_stories, model)
-
+#load_story()
 
 
 ## Read my own file
