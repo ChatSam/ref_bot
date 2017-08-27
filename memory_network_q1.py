@@ -22,6 +22,12 @@ from functools import reduce
 import tarfile
 import numpy as np
 import re
+from keras.models import load_model
+import os
+
+# avoid tensorflow debugging messages
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 from pprint import pprint
 
 
@@ -126,6 +132,10 @@ challenges = {
 challenge_type = 'single_supporting_fact_10k'
 challenge = challenges[challenge_type]
 
+
+
+print ("\t --------------------- Refbot --------------------- \t")
+
 print('Extracting stories for the challenge:', challenge_type)
 train_stories = get_stories(tar.extractfile(challenge.format('train')))
 test_stories = get_stories(tar.extractfile(challenge.format('test')))
@@ -140,17 +150,15 @@ vocab_size = len(vocab) + 1
 story_maxlen = max(map(len, (x for x, _, _ in train_stories + test_stories)))
 query_maxlen = max(map(len, (x for _, x, _ in train_stories + test_stories)))
 
-print('-')
-print('Vocab size:', vocab_size, 'unique words')
-print('Story max length:', story_maxlen, 'words')
-print('Query max length:', query_maxlen, 'words')
-print('Number of training stories:', len(train_stories))
-print('Number of test stories:', len(test_stories))
-print('-')
-print('Here\'s what a "story" tuple looks like (input, query, answer):')
-print(train_stories[1])
-print('-')
-print('Vectorizing the word sequences...')
+
+# values to test the data
+# print('-')
+# print('Vocab size:', vocab_size, 'unique words')
+# print('Story max length:', story_maxlen, 'words')
+# print('Query max length:', query_maxlen, 'words')
+# print('Number of training stories:', len(train_stories))
+# print('Number of test stories:', len(test_stories))
+# print('Vectorizing the word sequences...')
 
 word_idx = dict((c, i + 1) for i, c in enumerate(vocab))
 inputs_train, queries_train, answers_train = vectorize_stories(train_stories,
@@ -240,9 +248,11 @@ model.compile(optimizer='rmsprop', loss='categorical_crossentropy',
 
 
 model_path1 = '/Users/Chat/8451hack/demo/Deep-Learning/qa_chat_bot/model1.h5'
+model_name = 'model1.h5'
 
 try:
-    model.load_weights(model_path1)
+    #model.load_weights(model_path1)
+    model = load_model(model_name)
 except Exception:
     # train
     model.fit([inputs_train, queries_train], answers_train,
@@ -252,12 +262,13 @@ except Exception:
 
 
     #model_path1 = r'C:\Users\priya\Documents\my_dl\qachatbot\model1.h5'
-    model.save(model_path1)
+    #model.save(model_path1)
+    model.save(model_name)
 #model save as pickle file
 # model load again
 # write story answer question in the format in a text file
 
-model.load_weights(model_path1)
+#model.load_weights(model_path1)
 
 
 # Display a selected test story
@@ -265,18 +276,29 @@ def run_demo(test_stories, model):
     n = 10
     story_list = test_stories[n][0]
     story = ' '.join(word for word in story_list)
-    print("\n Story is:", story)
-    qu = "Where is John ?"
-    print(qu)
-    q = vectorize_query(qu, word_idx, query_maxlen)
-    ans = test_stories[n][2]
-    print("Actual answer is: ", ans)
-    input_story = np.reshape(inputs_test[n], (1, story_maxlen))
 
-    final_answer, confidence = get_answer(input_story,q, model)
+    print("\n\n \t\t ------------- Story ------------ \t\t \n {0}"
+             "\n\t\t----------------------------------".format(story))
 
-    print("Machine answer is: ", final_answer)
-    print("Confidence: ",confidence)
+    while True:
+        print ("Press 'q' to exit Refbot.")
+        qu = raw_input("Ask question: ")
+
+        if qu == 'q':
+            print ("\t \t ---- Refbot exited ---- \t\t")
+            break
+
+        q = vectorize_query(qu, word_idx, query_maxlen)
+        ans = test_stories[n][2]
+        #print("Actual answer is: ", ans)
+        input_story = np.reshape(inputs_test[n], (1, story_maxlen))
+
+        final_answer, confidence = get_answer(input_story,q, model)
+
+        print ("\n---------------------\t")
+        print("Answer: ", final_answer)
+        print("Confidence: ",confidence)
+        print ("---------------------\t")
 
 
 def get_answer(input_story, q, model):
