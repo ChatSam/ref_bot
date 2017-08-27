@@ -94,43 +94,14 @@ def vectorize_stories(data, word_idx, story_maxlen, query_maxlen):
     return (pad_sequences(X, maxlen=story_maxlen),
             pad_sequences(Xq, maxlen=query_maxlen), np.array(Y))
 
+
 def vectorize_query(data, word_idx, query_maxlen):
-    #X = []
     Xq = []
-    #Y = []
-
     tokens = tokenize(data)
-    print (tokens)
-
-    #x = [word_idx[w] for w in story]
     xq = [word_idx[w] for w in tokens]
-    # let's not forget that index 0 is reserved
-    #y = np.zeros(len(word_idx) + 1)
-    #y[word_idx[answer]] = 1
-    #X.append(x)
     Xq.append(xq)
-    #Y.append(y)
-
-    print (xq)
 
     return pad_sequences(Xq, maxlen=query_maxlen)
-
-    # return (pad_sequences(X, maxlen=story_maxlen),
-    #         pad_sequences(Xq, maxlen=query_maxlen), np.array(Y))
-
-
-def vectorize_story(data, word_idx, story_maxlen):
-    X = []
-    #Xq = []
-    #Y = []
-    for story in data:
-        x = [word_idx[w] for w in story]
-        #xq = [word_idx[w] for w in query]
-        # let's not forget that index 0 is reserved
-        #y = np.zeros(len(word_idx) + 1)
-        #y[word_idx[answer]] = 1
-        X.append(x)
-    return pad_sequences(X, maxlen=story_maxlen)
 
 
 
@@ -285,56 +256,42 @@ except Exception:
 
 model.load_weights(model_path1)
 pred_results = model.predict(([inputs_test, queries_test]))
-print ("input test")
-print (inputs_test.shape)
+
+
 # Display a selected test story
 
 #n = np.random.randint(0,1000)
-
 n = 10
 story_list = test_stories[n][0]
 story =' '.join(word for word in story_list)
 print("\n Story is:",story)
 
-question_list = test_stories[n][1]
-ques =' '.join(word for word in question_list)
-#print("Question is: ",ques)
+# question_list = test_stories[n][1]
+# ques =' '.join(word for word in question_list)
+# print("Question is: ",ques)
 
 
-qu = "Where is John ?"
+qu = "Where is Mary ?"
 print (qu)
 q = vectorize_query(qu,word_idx,query_maxlen)
-#print (q)
 
 ans = test_stories[n][2]
 print("Actual answer is: ", ans)
 
 
 input_story = np.reshape(inputs_test[n],(1,story_maxlen))
-#story = vectorize_story(word_idx,query_maxlen)
 pred_results3 = model.predict(([input_story, q]))
 
-print (pred_results3)
-
-#pred_results2 = model.predict(([inputs_test[n], q]))
 val_max2 = np.argmax(pred_results3[0])
 
 #Generate prediction from model
-
-val_max = np.argmax(pred_results[n])
-
-#pprint (pred_results[n])
-#print (pred_results[n].shape)
-#pprint (val_max)
-#pprint (queries_test)
-print (inputs_test.shape, queries_test.shape, answers_test.shape)
 
 for key, val in word_idx.items():
     if val == val_max2:
         k = key
 
 print("Machine answer is: ", k)
-print("I am ", pred_results[n][val_max2], "certain of it")
+print("I am ", pred_results3[0][val_max2], "certain of it")
 
 ## Read my own file
 
